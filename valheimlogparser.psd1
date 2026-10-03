@@ -9,7 +9,7 @@
 @{
 
 # Script module or binary module file associated with this manifest.
-RootModule = 'valhiemlogparser.psm1'
+RootModule = 'valheimlogparser.psm1'
 
 # Version number of this module.
 ModuleVersion = '0.0.1'
@@ -69,7 +69,7 @@ Copyright = '(c) Another Salad. All rights reserved.'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Get-PlayerLogin', 'Get-LatestPlayerLogin', 'Get-ActivePlayer', 'Get-PlayerDeath')
+FunctionsToExport = @('Get-PlayerLogin', 'Get-LatestPlayerLogin', 'Get-ActivePlayer', 'Get-PlayerDeath', 'Read-ServerLog', 'Get-Player')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
