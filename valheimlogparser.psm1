@@ -1,7 +1,7 @@
 # Hideous hackery with the regexes really, we will look for a _unique_ group name to infer which object to shove back into the pipe.
-$JoinRegex  = "(?<Date>\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}): (?<JoinPhrase>Got character ZDOID from) (?<PlayerName>.*) : (?<PlayerId>-?\d+):(?<PlayerIndex>\d+)"
+$JoinRegex  = "(?<Date>\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}): (?<JoinPhrase>Got character ZDOID from) (?<PlayerName>.*) : (?<PlayerId>-?\d{2,}):(?<PlayerIndex>\d+)"  # PlayerId will always be an int greater than 2 digits
 $LeaveRegex = "(?<Date>\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}): (?<LeavePhrase>Destroying abandoned non persistent zdo) (?<PlayerId>-?\d+):(?<PlayerIndex>\d+) owner -?\d+"
-$DeathRegex = "(?<Date>\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}): (?<DeathPhrase>Got character ZDOID from) (?<PlayerName>.*) : 0:0"
+$DeathRegex = "(?<Date>\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}): (?<DeathPhrase>Got character ZDOID from) (?<PlayerName>.*) : 0:0"  # death just zeros out the player id and index, for a reason I'm sure.
 
 # Will do a 'one shot' (sure why not) read of the server log, parsing it with all of the above regexes.
 # It should be then trival for any callers to filter out what they want.
@@ -71,7 +71,7 @@ Function Get-ActivePlayer {
         $LogoutEvents = $allEvents | ? {$_.Psobject.Typenames -contains "PlayerLeave"} | Sort-Object -Property LineNumber -Descending | Sort-Object -Property Id -Unique
         # Current active users
         # Players may have logged in and out throughout the day, so we only care about logout events that have happened after the latest login.
-        $allEvents | Get-PlayerLogin | ? {$_.id -notin $LogoutEvents.Id}
+        $allEvents | Get-LatestPlayerLogin | ? {$_.id -notin $LogoutEvents.Id}
     }
 }
 
@@ -83,6 +83,7 @@ Function Get-PlayerDeath {
     }
 }
 
+# Shows their latest login, adds their logout time if they have done so. 
 Function Get-Player {
     [CmdletBinding()]
     param([Parameter(ValueFromPipeline,Mandatory)][string]$logFile)
