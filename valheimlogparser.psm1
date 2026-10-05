@@ -58,7 +58,10 @@ Function Get-LatestPlayerLogin {
         [Parameter(ParameterSetName="ServerEvent",ValueFromPipeline,Mandatory)][Pscustomobject[]]$ServerEvent
     )
     end {
-        $(if($input.GetType() -eq [string]) {$input | Read-ServerLog} else {$input}) | Get-PlayerLogin | Sort-Object -Property LineNumber -Descending | Sort-Object -Property Name -Unique
+        # so in pwsh 7.6 shoving -Descending into a sort at the end of this pipe seemingly kept the order from the sort on linenumber (which was also descending), so:
+        # .. | get-playerlogin | Sort-Object -Property LineNumber -Descending | Sort-Object -Property Name -Unique -Descending (also worked for ID)
+        # But this just felt like a bug waiting to happen so I moved to group (which feels like the right answer anyway)
+        $(if($input.GetType() -eq [string]) {$input | Read-ServerLog} else {$input}) | Get-PlayerLogin | Sort-Object -Property LineNumber -Descending | Group-Object Name | % {$_.Group[0]}
     }
 }
 
@@ -68,7 +71,7 @@ Function Get-ActivePlayer {
     param([Parameter(ValueFromPipeline,Mandatory)][string]$logFile)
     process {
         $allEvents = $logfile | Read-ServerLog
-        $LogoutEvents = $allEvents | ? {$_.Psobject.Typenames -contains "PlayerLeave"} | Sort-Object -Property LineNumber -Descending | Sort-Object -Property Id -Unique
+        $LogoutEvents = $allEvents | ? {$_.Psobject.Typenames -contains "PlayerLeave"} | Sort-Object -Property LineNumber -Descending | Group-Object Id | % {$_.Group[0]}
         # Current active users
         # Players may have logged in and out throughout the day, so we only care about logout events that have happened after the latest login.
         $allEvents | Get-LatestPlayerLogin | ? {$_.id -notin $LogoutEvents.Id}
@@ -89,7 +92,7 @@ Function Get-Player {
     param([Parameter(ValueFromPipeline,Mandatory)][string]$logFile)
     process {
         $allEvents = $logfile | Read-ServerLog
-        $LogoutEvents = $allEvents | ? {$_.Psobject.Typenames -contains "PlayerLeave"} | Sort-Object -Property LineNumber -Descending | Sort-Object -Property Id -Unique
+        $LogoutEvents = $allEvents | ? {$_.Psobject.Typenames -contains "PlayerLeave"} | Sort-Object -Property LineNumber -Descending | Group-Object Id | % {$_.Group[0]}
         $allEvents | Get-LatestPlayerLogin | % {
             $Login = $_
             $logout = $LogoutEvents | ? { $_.Id -eq $login.Id } | select -First 1
