@@ -1,1 +1,1 @@
-I can't spell.
+Migrated to: https://codeberg.org/anothersalad/valheimlogparser
